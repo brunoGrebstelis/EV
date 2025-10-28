@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>EV Fizio — Therapist Tracker</title>
+<title>EV Fizio — Patient & Earnings Tracker</title>
 <link rel="icon" href="data:,">
 <style>
   :root{
@@ -28,7 +28,7 @@
   .grid.cols-2{grid-template-columns:1fr 1fr}
   @media (max-width:700px){.grid.cols-2{grid-template-columns:1fr}}
   label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
-  input[type="text"],input[type="number"],input[type="date"],textarea,select{
+  input[type="text"],input[type="number"],input[type="password"],input[type="date"]{
     width:100%;box-sizing:border-box;background:#fff;color:var(--text);
     border:1px solid var(--border);border-radius:12px;padding:12px;outline:none}
   .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
@@ -41,6 +41,8 @@
   .btn.danger{background:var(--danger);color:#fff}
   .btn.ghost{background:transparent;border-color:var(--border);color:var(--muted)}
   .inline-note{font-size:12px;color:var(--muted)}
+  .tools-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}
+
   .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:8px}
   @media (max-width:700px){.stats{grid-template-columns:1fr}}
   .stat{background:#fff;border:1px solid var(--border);border-radius:12px;padding:12px}
@@ -53,13 +55,13 @@
   .rowline .ts{font-size:12px;color:var(--muted)}
   .pill{font-size:12px;padding:4px 8px;border-radius:999px;background:#f0f3f5;color:#223;display:inline-block}
   .empty{padding:18px;text-align:center;color:var(--muted)}
+
   .modal-backdrop{position:fixed;inset:0;background:rgba(15,18,22,0.35);display:none;align-items:flex-end;justify-content:center}
   .modal{width:100%;max-width:560px;background:var(--panel);border:1px solid var(--border);
     border-top-left-radius:16px;border-top-right-radius:16px;box-shadow:var(--shadow);padding:14px;transform:translateY(8px)}
   .modal header{margin:0 0 10px 0}
   .modal .footer{display:flex;justify-content:flex-end;gap:8px;margin-top:10px}
   .hide{display:none}.right{margin-left:auto}
-  .tools-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}
 </style>
 </head>
 <body>
@@ -67,40 +69,77 @@
     <header>
       <div class="logo">EV</div>
       <div>
-        <h1>EV Fizio — Therapist Tracker</h1>
-        <div class="sub">Track patients & earnings safely on your device. Mobile-first, refresh-proof.</div>
+        <h1>EV Fizio — Patient & Earnings Tracker</h1>
+        <div class="sub">Secure, local, mobile-first. Each user sees only their own data.</div>
       </div>
       <div class="right"></div>
     </header>
 
-    <!-- Therapist profile (Login) -->
-    <section class="panel" id="therapistPanel">
-      <h2>Therapist</h2>
-      <div class="grid cols-2">
-        <div>
-          <label for="therapistName">Therapist name</label>
-          <input id="therapistName" type="text" placeholder="Ēriks Visockis" />
+    <!-- AUTH PANEL -->
+    <section class="panel" id="authPanel">
+      <h2 id="authTitle">Log in</h2>
+
+      <!-- Login view -->
+      <div id="loginView">
+        <div class="grid cols-2">
+          <div>
+            <label for="loginNick">Nickname</label>
+            <input id="loginNick" type="text" placeholder="e.g., eriks" autocomplete="username">
+          </div>
+          <div>
+            <label for="loginPass">Password</label>
+            <input id="loginPass" type="password" placeholder="••••••••" autocomplete="current-password">
+          </div>
         </div>
-        <div>
-          <label for="therapistId">Therapist ID (unikāla daļa no personas koda vai ko citu)</label>
-          <input id="therapistId" type="text" placeholder="e.g., EV-1992-0412" />
+        <div class="row" style="margin-top:10px">
+          <button class="btn primary" id="loginBtn">Log in</button>
+          <button class="btn neutral" id="gotoSignupBtn">Sign up</button>
         </div>
+        <div class="inline-note">Passwords are hashed locally (SHA-256). No server involved.</div>
       </div>
-      <div class="grid cols-2" style="margin-top:10px">
-        <div>
-          <label for="defaultPct">Default payout %</label>
-          <input id="defaultPct" type="number" step="0.1" min="0" max="100" placeholder="35" />
-          <div class="inline-note">Usual share for this therapist (e.g., 35%).</div>
+
+      <!-- Signup view -->
+      <div id="signupView" class="hide">
+        <div class="grid cols-2">
+          <div>
+            <label for="suName">Name</label>
+            <input id="suName" type="text" placeholder="Ēriks">
+          </div>
+          <div>
+            <label for="suSurname">Surname</label>
+            <input id="suSurname" type="text" placeholder="Visockis">
+          </div>
         </div>
-      </div>
-      <div class="row" style="margin-top:10px">
-        <button class="btn primary" id="loginBtn">Log in</button>
-        <span class="inline-note">Entries are filtered to the active therapist only.</span>
+        <div class="grid cols-2" style="margin-top:10px">
+          <div>
+            <label for="suNick">Nickname (unique)</label>
+            <input id="suNick" type="text" placeholder="eriks" autocomplete="username">
+          </div>
+          <div>
+            <label for="suEmail">Email</label>
+            <input id="suEmail" type="text" placeholder="name@example.com">
+          </div>
+        </div>
+        <div class="grid cols-2" style="margin-top:10px">
+          <div>
+            <label for="suPhone">Phone (optional)</label>
+            <input id="suPhone" type="text" placeholder="+371 ...">
+          </div>
+          <div>
+            <label for="suPass">Create password</label>
+            <input id="suPass" type="password" placeholder="At least 6 characters" autocomplete="new-password">
+          </div>
+        </div>
+        <div class="row" style="margin-top:10px">
+          <button class="btn primary" id="signupBtn">Create account</button>
+          <button class="btn ghost" id="gotoLoginBtn">Back to login</button>
+        </div>
+        <div class="inline-note">We’ll add monthly emails later using the stored email address.</div>
       </div>
     </section>
 
-    <!-- Add patient entry -->
-    <section class="panel" id="addPanel">
+    <!-- ADD PATIENT (only when logged in) -->
+    <section class="panel hide" id="addPanel">
       <h2>Add patient</h2>
       <div class="grid cols-2">
         <div>
@@ -109,7 +148,7 @@
         </div>
         <div>
           <label for="patientName">Patient name</label>
-          <input id="patientName" type="text" placeholder="Patient name (optional)" />
+          <input id="patientName" type="text" placeholder="Patient (optional)" />
         </div>
       </div>
 
@@ -119,30 +158,31 @@
           <input id="grossAmount" type="number" min="0" step="0.01" placeholder="e.g., 40.00" />
         </div>
         <div>
-          <label for="pct">Therapist %</label>
+          <label for="pct">Your %</label>
           <input id="pct" type="number" min="0" max="100" step="0.1" placeholder="35" />
         </div>
       </div>
 
       <div class="grid cols-2" style="margin-top:10px">
         <div>
-          <label for="earned">Your earnings (auto-linked)</label>
+          <label for="earned">Your earnings (linked)</label>
           <input id="earned" type="number" step="0.01" />
         </div>
         <div>
           <label for="notes">Notes (optional)</label>
-          <input id="notes" type="text" placeholder="E.g., cash/card, session type …" />
+          <input id="notes" type="text" placeholder="cash/card, session type …" />
         </div>
       </div>
 
       <div class="row" style="margin-top:12px">
         <button class="btn primary" id="addEntry">Add entry</button>
-        <span class="inline-note">Writes to a local dataset per therapist.</span>
+        <button class="btn ghost" id="logoutBtn" style="flex:0 0 auto">Log out</button>
+        <span class="inline-note">Sticky: clinic amount & % are remembered per user.</span>
       </div>
     </section>
 
-    <!-- Audit results -->
-    <section class="panel" id="auditPanel">
+    <!-- AUDIT (only when logged in) -->
+    <section class="panel hide" id="auditPanel">
       <h2>Audit</h2>
       <div class="row" style="gap:8px;flex-wrap:wrap">
         <button class="btn neutral" data-range="today">Today</button>
@@ -162,12 +202,12 @@
 
       <div class="tools-row">
         <button class="btn neutral" id="exportCsvBtn" style="flex:0 0 auto">Export CSV</button>
-        <span class="inline-note">Exports all entries of the active therapist.</span>
+        <span class="inline-note">Exports all entries of the logged-in user.</span>
       </div>
     </section>
   </div>
 
-  <!-- Modal: manual range -->
+  <!-- Manual date modal -->
   <div class="modal-backdrop" id="modalBackdrop" aria-hidden="true">
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
       <header><h2 id="modalTitle" style="margin:0">Select a custom period</h2></header>
@@ -183,32 +223,48 @@
   </div>
 
 <script>
-/* ======================= Persistence & State ======================= */
-const STORAGE_KEY = 'evfizio_tracker_v2';
-
+/* ======================= State & Persistence ======================= */
+const STORAGE_KEY = 'evfizio_tracker_auth_v1';
+/*
+state = {
+  users: { [nickname]: { name, surname, email, phone, passHash, createdAt, last:{gross,pct} } },
+  entries: [ { id, user: nickname, userName, date, createdAt, updatedAt, patientName, gross, pct, earned, notes } ],
+  currentUser: null
+}
+*/
 function loadState(){
   try{
     const raw = localStorage.getItem(STORAGE_KEY);
-    if(!raw) return { therapists:{}, entries:[], currentTherapistId:null, lastInputs:{} };
-    const parsed = JSON.parse(raw);
-    parsed.therapists ??= {};
-    parsed.entries ??= [];
-    parsed.currentTherapistId ??= null;
-    parsed.lastInputs ??= {}; // per-therapist: {gross, pct}
-    return parsed;
-  }catch(e){
-    console.error('Load state error', e);
-    return { therapists:{}, entries:[], currentTherapistId:null, lastInputs:{} };
-  }
+    if(!raw) return { users:{}, entries:[], currentUser:null };
+    const s = JSON.parse(raw);
+    s.users ??= {}; s.entries ??= []; s.currentUser ??= null;
+    return s;
+  }catch(e){ console.error(e); return { users:{}, entries:[], currentUser:null }; }
 }
 function saveState(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
 let state = loadState();
 
 /* ======================= Elements ======================= */
-const therapistNameEl = document.getElementById('therapistName');
-const therapistIdEl   = document.getElementById('therapistId');
-const defaultPctEl    = document.getElementById('defaultPct');
-const loginBtn        = document.getElementById('loginBtn');
+const authPanel = document.getElementById('authPanel');
+const authTitle = document.getElementById('authTitle');
+const loginView = document.getElementById('loginView');
+const signupView = document.getElementById('signupView');
+const loginNick = document.getElementById('loginNick');
+const loginPass = document.getElementById('loginPass');
+const loginBtn  = document.getElementById('loginBtn');
+const gotoSignupBtn = document.getElementById('gotoSignupBtn');
+
+const suName = document.getElementById('suName');
+const suSurname = document.getElementById('suSurname');
+const suNick = document.getElementById('suNick');
+const suEmail = document.getElementById('suEmail');
+const suPhone = document.getElementById('suPhone');
+const suPass = document.getElementById('suPass');
+const signupBtn = document.getElementById('signupBtn');
+const gotoLoginBtn = document.getElementById('gotoLoginBtn');
+
+const addPanel = document.getElementById('addPanel');
+const auditPanel = document.getElementById('auditPanel');
 
 const dateInputEl   = document.getElementById('dateInput');
 const patientNameEl = document.getElementById('patientName');
@@ -217,12 +273,13 @@ const pctEl         = document.getElementById('pct');
 const earnedEl      = document.getElementById('earned');
 const notesEl       = document.getElementById('notes');
 const addEntryEl    = document.getElementById('addEntry');
-
-const exportCsvBtn  = document.getElementById('exportCsvBtn');
+const logoutBtn     = document.getElementById('logoutBtn');
 
 const summaryEl = document.getElementById('summary');
 const resultsEl = document.getElementById('results');
 const emptyStateEl = document.getElementById('emptyState');
+
+const exportCsvBtn  = document.getElementById('exportCsvBtn');
 
 const modalBackdrop = document.getElementById('modalBackdrop');
 const manualOpen = document.getElementById('manualOpen');
@@ -231,9 +288,7 @@ const applyManual = document.getElementById('applyManual');
 const fromDateEl = document.getElementById('fromDate');
 const toDateEl = document.getElementById('toDate');
 
-const addPanel = document.getElementById('addPanel');
-
-/* ======================= Helpers ======================= */
+/* ======================= Utils ======================= */
 function pad(n){ return String(n).padStart(2,'0'); }
 function todayISO(){ const d=new Date(); return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; }
 function dateOnlyISO(d){ return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; }
@@ -265,125 +320,163 @@ function toast(msg, kind='ok'){
   setTimeout(()=>{ el.remove(); }, 1800);
 }
 
-/* ======================= Login & Therapist ======================= */
-function hydrateTherapistFormFromActive(){
-  const tid = state.currentTherapistId;
-  const t = tid ? state.therapists[tid] : null;
-  therapistNameEl.value = t?.name || '';
-  therapistIdEl.value   = tid || '';
-  defaultPctEl.value    = t?.defaultPct ?? '';
+/* Crypto: SHA-256 password hashing */
+async function sha256Hex(str){
+  const enc = new TextEncoder().encode(str);
+  const buf = await crypto.subtle.digest('SHA-256', enc);
+  return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('');
 }
-function ensureTherapist(id, name, defaultPct){
-  if(!state.therapists[id]){
-    state.therapists[id] = { name, defaultPct };
-  }else{
-    state.therapists[id].name = name;
-    state.therapists[id].defaultPct = defaultPct;
-  }
-}
-loginBtn.addEventListener('click', ()=>{
-  const name = therapistNameEl.value.trim();
-  const id   = therapistIdEl.value.trim();
-  let dp     = parseFloat(defaultPctEl.value);
-  if(!name || !id){ toast('Enter therapist name and ID', 'warn'); return; }
-  if(!Number.isFinite(dp)) dp = 35;
-  dp = clamp(dp,0,100);
 
-  ensureTherapist(id, name, dp);
-  state.currentTherapistId = id;
+/* ======================= Auth UI switching ======================= */
+gotoSignupBtn.addEventListener('click', ()=>{ loginView.classList.add('hide'); signupView.classList.remove('hide'); authTitle.textContent='Sign up'; });
+gotoLoginBtn.addEventListener('click',   ()=>{ signupView.classList.add('hide'); loginView.classList.remove('hide'); authTitle.textContent='Log in'; });
+
+/* ======================= Signup ======================= */
+signupBtn.addEventListener('click', async ()=>{
+  const name = suName.value.trim();
+  const surname = suSurname.value.trim();
+  const nick = suNick.value.trim();
+  const email = suEmail.value.trim();
+  const phone = suPhone.value.trim();
+  const pass = suPass.value;
+
+  if(!name || !surname || !nick || !email || !pass){ toast('Please fill Name, Surname, Nickname, Email, and Password', 'warn'); return; }
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ toast('Enter a valid email', 'warn'); return; }
+  if(pass.length < 6){ toast('Password must be at least 6 characters', 'warn'); return; }
+  if(state.users[nick]){ toast('Nickname already exists', 'warn'); return; }
+
+  const passHash = await sha256Hex(pass);
+  state.users[nick] = {
+    name, surname, email, phone, passHash,
+    createdAt: new Date().toISOString(),
+    last: { gross: '', pct: 35 } // sticky defaults per user
+  };
+  state.currentUser = nick;
   saveState();
-  hydrateAddFormDefaults();
-  // Scroll to Add patient
-  addPanel.scrollIntoView({behavior:'smooth', block:'start'});
-  // Default render range
-  const rng = getRange('thisMonth'); renderAudit(rng.start, rng.end);
-  toast(`Logged in as ${name}`);
+
+  // Clear signup inputs
+  suName.value = suSurname.value = suNick.value = suEmail.value = suPhone.value = suPass.value = '';
+
+  toast('Account created. Logged in.');
+  showAppForCurrentUser();
 });
 
-/* If already logged in, auto-scroll to Add patient */
+/* ======================= Login ======================= */
+loginBtn.addEventListener('click', async ()=>{
+  const nick = loginNick.value.trim();
+  const pass = loginPass.value;
+  const user = state.users[nick];
+  if(!user){ toast('User not found', 'warn'); return; }
+  const passHash = await sha256Hex(pass);
+  if(passHash !== user.passHash){ toast('Incorrect password', 'warn'); return; }
+  state.currentUser = nick; saveState();
+
+  // Clear login fields (optional)
+  loginNick.value = ''; loginPass.value = '';
+
+  toast(`Welcome, ${user.name}!`);
+  showAppForCurrentUser(true);
+});
+
+/* Auto-login view if already logged in */
 window.addEventListener('load', ()=>{
-  hydrateTherapistFormFromActive();
-  if(state.currentTherapistId){
-    hydrateAddFormDefaults();
-    setTimeout(()=> addPanel.scrollIntoView({behavior:'smooth', block:'start'}), 150);
+  if(state.currentUser){
+    showAppForCurrentUser(true);
+  } else {
+    // default: show login panel only
+    authPanel.classList.remove('hide');
+    addPanel.classList.add('hide');
+    auditPanel.classList.add('hide');
   }
-  const rng = getRange('thisMonth'); renderAudit(rng.start, rng.end);
 });
 
-/* ======================= Add Form Defaults & Sticky values ======================= */
+/* Log out */
+logoutBtn.addEventListener('click', ()=>{
+  state.currentUser = null; saveState();
+  authPanel.classList.remove('hide');
+  loginView.classList.remove('hide'); signupView.classList.add('hide'); authTitle.textContent='Log in';
+  addPanel.classList.add('hide'); auditPanel.classList.add('hide');
+  toast('Logged out');
+});
+
+/* ======================= App visibility for user ======================= */
+function showAppForCurrentUser(scrollToAdd=false){
+  const nick = state.currentUser;
+  if(!nick){ return; }
+
+  // show add/audit; hide auth
+  authPanel.classList.add('hide');
+  addPanel.classList.remove('hide');
+  auditPanel.classList.remove('hide');
+
+  hydrateAddFormDefaults();
+  const rng = getRange('thisMonth'); renderAudit(rng.start, rng.end);
+
+  if(scrollToAdd){
+    setTimeout(()=> addPanel.scrollIntoView({behavior:'smooth', block:'start'}), 100);
+  }
+}
+
+/* ======================= Add Form: sticky & mutual math ======================= */
 function hydrateAddFormDefaults(){
+  const u = state.users[state.currentUser];
   dateInputEl.value = todayISO();
-  const tid = state.currentTherapistId;
-  const t = tid ? state.therapists[tid] : null;
 
-  // sticky values per therapist
-  const last = state.lastInputs[tid] || {};
-  const lastGross = Number.isFinite(+last.gross) ? +last.gross : '';
-  const lastPct   = Number.isFinite(+last.pct) ? +last.pct : (t?.defaultPct ?? 35);
-
-  grossAmountEl.value = lastGross;
-  pctEl.value         = lastPct;
+  const last = u?.last || {};
+  grossAmountEl.value = Number.isFinite(+last.gross) ? +last.gross : '';
+  pctEl.value         = Number.isFinite(+last.pct)   ? +last.pct   : 35;
   // compute earned if possible
   updateLinkedValues('gross_or_pct');
   earnedEl.value = Number.isFinite(+earnedEl.value) ? (+earnedEl.value).toFixed(2) : '';
   notesEl.value = '';
 }
 
-/* ======================= Linked inputs (mutual updates) ======================= */
 let linkingGuard = false;
 function updateLinkedValues(trigger){
   if(linkingGuard) return;
   linkingGuard = true;
-
   const gross = parseFloat(grossAmountEl.value);
   const pct   = parseFloat(pctEl.value);
   const earned= parseFloat(earnedEl.value);
 
   if(trigger==='earned' && Number.isFinite(earned) && Number.isFinite(gross) && gross>0){
-    // earned changed -> recompute pct
     pctEl.value = clamp((earned / gross) * 100, 0, 100).toFixed(2);
-  } else if((trigger==='gross' || trigger==='pct' || trigger==='gross_or_pct') && Number.isFinite(gross) && Number.isFinite(pct)){
-    // gross or pct changed -> recompute earned
+  } else if((trigger==='gross'||trigger==='pct'||trigger==='gross_or_pct') && Number.isFinite(gross) && Number.isFinite(pct)){
     earnedEl.value = (gross * (pct/100)).toFixed(2);
   } else if(trigger==='gross' && Number.isFinite(earned) && Number.isFinite(gross) && gross>0 && !Number.isFinite(pct)){
-    // fallback: recompute pct if pct missing but earned present
     pctEl.value = clamp((earned / gross) * 100, 0, 100).toFixed(2);
   }
-
   linkingGuard = false;
 }
-
-// Attach listeners
-grossAmountEl.addEventListener('input', ()=> updateLinkedValues('gross'));
-pctEl.addEventListener('input',         ()=> updateLinkedValues('pct'));
-earnedEl.addEventListener('input',      ()=> updateLinkedValues('earned'));
+grossAmountEl.addEventListener('input', ()=>updateLinkedValues('gross'));
+pctEl.addEventListener('input',         ()=>updateLinkedValues('pct'));
+earnedEl.addEventListener('input',      ()=>updateLinkedValues('earned'));
 
 /* ======================= Add Entry ======================= */
 function uid(){ return Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8); }
 addEntryEl.addEventListener('click', ()=>{
-  const tid = state.currentTherapistId;
-  if(!tid){ toast('Please log in first', 'warn'); return; }
-  const t = state.therapists[tid];
-  const dt = dateInputEl.value || todayISO();
-  const name = patientNameEl.value.trim();
+  const nick = state.currentUser;
+  if(!nick){ toast('Please log in first', 'warn'); return; }
+  const user = state.users[nick];
 
+  const dt = dateInputEl.value || todayISO();
+  const patientName = patientNameEl.value.trim();
   const gross = parseFloat(grossAmountEl.value);
   let pct = parseFloat(pctEl.value);
   let earned = parseFloat(earnedEl.value);
-
   if(!Number.isFinite(gross) || gross<0){ toast('Enter a valid clinic amount', 'warn'); return; }
-  if(!Number.isFinite(pct)) pct = t?.defaultPct ?? 35;
+  if(!Number.isFinite(pct)) pct = 35;
   pct = clamp(pct,0,100);
   if(!Number.isFinite(earned)) earned = +(gross * (pct/100)).toFixed(2);
 
   const entry = {
     id: uid(),
-    therapistId: tid,
-    therapistName: t?.name || '',
+    user: nick,
+    userName: `${user.name} ${user.surname}`,
     date: dt,
     createdAt: new Date().toISOString(),
     updatedAt: null,
-    patientName: name,
+    patientName,
     gross: round2(gross),
     pct: round2(pct),
     earned: round2(earned),
@@ -391,22 +484,22 @@ addEntryEl.addEventListener('click', ()=>{
   };
   state.entries.push(entry);
 
-  // remember sticky inputs per therapist
-  state.lastInputs[tid] = { gross: entry.gross, pct: entry.pct };
+  // remember sticky values per user
+  user.last = { gross: entry.gross, pct: entry.pct };
+
   saveState();
 
-  // clear patient row but keep sticky defaults
+  // clear some fields, keep sticky defaults
   patientNameEl.value = '';
   notesEl.value = '';
   hydrateAddFormDefaults();
 
   toast('Entry added');
 
-  // refresh current audit
   if(currentRange){ renderAudit(currentRange.start, currentRange.end); }
 });
 
-/* ======================= Audit Period Helpers ======================= */
+/* ======================= Audit helpers & rendering ======================= */
 function startOfWeek(d){ const date=new Date(d.getFullYear(),d.getMonth(),d.getDate()); const day=(date.getDay()+6)%7; date.setDate(date.getDate()-day); return date; }
 function startOfMonth(d){ return new Date(d.getFullYear(), d.getMonth(), 1); }
 function endOfMonth(d){ return new Date(d.getFullYear(), d.getMonth()+1, 0); }
@@ -425,14 +518,13 @@ function getRange(kind){
   return null;
 }
 
-/* ======================= Audit Rendering ======================= */
 let currentRange = null;
 
 function renderAudit(fromISO, toISO){
   currentRange = {start: fromISO, end: toISO};
-  const tid = state.currentTherapistId;
+  const nick = state.currentUser;
   const entries = state.entries
-    .filter(e => e.therapistId === tid)
+    .filter(e => e.user === nick)
     .filter(e => e.date >= fromISO && e.date <= toISO)
     .sort((a,b)=> (b.date.localeCompare(a.date) || (b.createdAt||'').localeCompare(a.createdAt||'')));
 
@@ -461,7 +553,6 @@ function renderAudit(fromISO, toISO){
     row.innerHTML = renderRowView(e);
     resultsEl.appendChild(row);
 
-    // Row button handlers
     row.addEventListener('click', (ev)=>{
       const t = ev.target;
       if(t.matches('.editBtn')) enterEditMode(e.id);
@@ -488,7 +579,6 @@ function renderRowView(e){
     </div>
   `;
 }
-
 function renderRowEdit(e){
   return `
     <div>
@@ -505,21 +595,16 @@ function renderRowEdit(e){
     </div>
   `;
 }
-
 function enterEditMode(id){
   const row = resultsEl.querySelector(`.rowline[data-id="${id}"]`);
   const e = state.entries.find(x=>x.id===id);
-  if(row && e){
-    row.innerHTML = renderRowEdit(e);
-    wireRowLinkedInputs(row); // enable mutual linking inside the row
-  }
+  if(row && e){ row.innerHTML = renderRowEdit(e); wireRowLinkedInputs(row); }
 }
 function cancelEdit(id){
   const row = resultsEl.querySelector(`.rowline[data-id="${id}"]`);
   const e = state.entries.find(x=>x.id===id);
   if(row && e){ row.innerHTML = renderRowView(e); }
 }
-
 function wireRowLinkedInputs(row){
   let guard=false;
   const g=row.querySelector('.in-gross');
@@ -539,13 +624,11 @@ function wireRowLinkedInputs(row){
   p.addEventListener('input', ()=>link('pct'));
   y.addEventListener('input', ()=>link('earned'));
 }
-
 function saveEdit(id){
   const idx = state.entries.findIndex(x=>x.id===id);
   if(idx<0) return;
   const row = resultsEl.querySelector(`.rowline[data-id="${id}"]`);
   const e = state.entries[idx];
-
   const patientName = row.querySelector('.in-patientName').value.trim();
   const gross = parseFloat(row.querySelector('.in-gross').value);
   let pct = parseFloat(row.querySelector('.in-pct').value);
@@ -553,7 +636,7 @@ function saveEdit(id){
   const notes = row.querySelector('.in-notes').value.trim();
 
   if(!Number.isFinite(gross) || gross<0){ toast('Invalid clinic amount', 'warn'); return; }
-  if(!Number.isFinite(pct)){ // recompute from earned if needed
+  if(!Number.isFinite(pct)){
     if(Number.isFinite(earned) && gross>0) pct = (earned/gross)*100;
     else pct = 35;
   }
@@ -567,25 +650,24 @@ function saveEdit(id){
   e.notes = notes;
   e.updatedAt = new Date().toISOString();
 
-  saveState(state);
+  saveState();
   row.innerHTML = renderRowView(e);
   renderAudit(currentRange.start, currentRange.end);
   toast('Entry updated');
 }
-
 function deleteEntry(id){
   if(!confirm('Delete this entry? This cannot be undone.')) return;
   const idx = state.entries.findIndex(x=>x.id===id);
   if(idx<0) return;
   state.entries.splice(idx,1);
-  saveState(state);
+  saveState();
   const row = resultsEl.querySelector(`.rowline[data-id="${id}"]`);
   if(row) row.remove();
   if(currentRange){ renderAudit(currentRange.start, currentRange.end); }
   toast('Entry deleted');
 }
 
-/* ======================= Audit Buttons & Modal ======================= */
+/* ======================= Audit buttons & modal ======================= */
 document.getElementById('auditPanel').addEventListener('click', (e)=>{
   const btn = e.target.closest('button[data-range]');
   if(!btn) return;
@@ -609,19 +691,19 @@ function closeModalFn(){ modalBackdrop.style.display='none'; modalBackdrop.setAt
 
 /* ======================= CSV Export ======================= */
 exportCsvBtn.addEventListener('click', ()=>{
-  const tid = state.currentTherapistId;
-  if(!tid){ toast('Log in to export', 'warn'); return; }
-  const rows = state.entries.filter(e=>e.therapistId===tid);
+  const nick = state.currentUser;
+  if(!nick){ toast('Log in to export', 'warn'); return; }
+  const rows = state.entries.filter(e=>e.user===nick);
   if(rows.length===0){ toast('No data to export', 'warn'); return; }
-  const header = ['id','date','createdAt','updatedAt','therapistId','therapistName','patientName','clinicEUR','pct','earnedEUR','notes'];
+  const header = ['id','date','createdAt','updatedAt','user','userName','patientName','clinicEUR','pct','earnedEUR','notes'];
   const csv = [header.join(',')].concat(
     rows.map(e=>[
       e.id,
       e.date,
       e.createdAt||'',
       e.updatedAt||'',
-      e.therapistId,
-      e.therapistName,
+      e.user,
+      e.userName,
       e.patientName?.replaceAll('"','""')||'',
       e.gross.toFixed(2),
       e.pct.toFixed(2),
@@ -633,19 +715,17 @@ exportCsvBtn.addEventListener('click', ()=>{
   const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  const tname = (state.therapists[tid]?.name||'therapist').replace(/\s+/g,'_');
-  a.href = url; a.download = `ev-fizio-${tname}.csv`;
+  const uname = (state.users[nick]?.name || 'user').replace(/\s+/g,'_');
+  a.href = url; a.download = `ev-fizio-${uname}.csv`;
   document.body.appendChild(a); a.click(); a.remove();
   URL.revokeObjectURL(url);
 });
 
-/* ======================= Initial Render ======================= */
+/* ======================= Initial render ======================= */
 (function firstRender(){
-  // Set default date & add-form values if therapist known
-  if(state.currentTherapistId){ hydrateAddFormDefaults(); }
-  else { dateInputEl.value = todayISO(); }
-  // Initial audit to something sane
-  const rng = getRange('thisMonth'); renderAudit(rng.start, rng.end);
+  if(state.currentUser){
+    showAppForCurrentUser();
+  }
 })();
 </script>
 </body>
