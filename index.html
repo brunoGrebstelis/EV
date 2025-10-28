@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>EV Fizio — Patient & Earnings Tracker</title>
+<link rel="icon" href="data:,">
+<style>
+  :root{
+    --bg:#f6f7f8; --panel:#ffffff; --text:#0b0f13; --muted:#5b6470;
+    --accent:#10a37f; --accent-2:#0b8a6b; --danger:#e5484d; --border:#e3e5e8;
+    --shadow: 0 1px 2px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.06);
+    --radius:16px;
+  }
+  html,body{height:100%}
+  body{margin:0;background:var(--bg);color:var(--text);
+    font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Inter,"Helvetica Neue",Arial,"Noto Sans","Apple Color Emoji","Segoe UI Emoji";}
+  .wrap{max-width:860px;margin-inline:auto;padding:clamp(12px,2vw,20px)}
+  header{display:flex;align-items:center;gap:12px;margin:8px 0 16px}
+  .logo{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#10a37f,#72e7c7);
+    display:grid;place-items:center;color:white;font-weight:800;box-shadow:var(--shadow)}
+  h1{font-size:clamp(18px,2.4vw,24px);margin:0}
+  .sub{color:var(--muted);font-size:14px}
+  .panel{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);
+    box-shadow:var(--shadow);padding:16px;margin:14px 0}
+  .panel h2{font-size:clamp(16px,2vw,18px);margin:0 0 12px}
+  .grid{display:grid;gap:12px}
+  .grid.cols-2{grid-template-columns:1fr 1fr}
+  @media (max-width:700px){.grid.cols-2{grid-template-columns:1fr}}
+  label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
+  input[type="text"],input[type="number"],input[type="password"],input[type="date"]{
+    width:100%;box-sizing:border-box;background:#fff;color:var(--text);
+    border:1px solid var(--border);border-radius:12px;padding:12px;outline:none}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .row>*{flex:1 1 auto}
+  .btn{appearance:none;border:1px solid transparent;border-radius:12px;
+    padding:10px 14px;font-weight:600;cursor:pointer;transition:.2s transform,.2s background-color;white-space:nowrap}
+  .btn:active{transform:scale(0.98)}
+  .btn.primary{background:var(--accent);color:#fff}.btn.primary:hover{background:var(--accent-2)}
+  .btn.neutral{background:#fff;border-color:var(--border);color:var(--text)}
+  .btn.danger{background:var(--danger);color:#fff}
+  .btn.ghost{background:transparent;border-color:var(--border);color:var(--muted)}
+  .inline-note{font-size:12px;color:var(--muted)}
+  .tools-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}
+
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:8px}
+  @media (max-width:700px){.stats{grid-template-columns:1fr}}
+  .stat{background:#fff;border:1px solid var(--border);border-radius:12px;padding:12px}
+  .stat .k{font-size:12px;color:var(--muted)} .stat .v{font-size:20px;font-weight:700}
+  .table{margin-top:10px;border-top:1px solid var(--border)}
+  .rowline{display:grid;grid-template-columns:1.2fr .9fr .6fr .7fr .6fr auto;gap:10px;
+    padding:12px 0;border-bottom:1px solid var(--border);align-items:center}
+  @media (max-width:900px){.rowline{grid-template-columns:1.2fr .7fr .6fr .6fr .6fr auto}}
+  @media (max-width:700px){.rowline{grid-template-columns:1fr;gap:6px}}
+  .rowline .ts{font-size:12px;color:var(--muted)}
+  .pill{font-size:12px;padding:4px 8px;border-radius:999px;background:#f0f3f5;color:#223;display:inline-block}
+  .empty{padding:18px;text-align:center;color:var(--muted)}
+
+  .modal-backdrop{position:fixed;inset:0;background:rgba(15,18,22,0.35);display:none;align-items:flex-end;justify-content:center}
+  .modal{width:100%;max-width:560px;background:var(--panel);border:1px solid var(--border);
+    border-top-left-radius:16px;border-top-right-radius:16px;box-shadow:var(--shadow);padding:14px;transform:translateY(8px)}
+  .modal header{margin:0 0 10px 0}
+  .modal .footer{display:flex;justify-content:flex-end;gap:8px;margin-top:10px}
+  .hide{display:none}.right{margin-left:auto}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="logo">EV</div>
+      <div>
+        <h1>EV Fizio — Patient & Earnings Tracker</h1>
+        <div class="sub">Secure, local, mobile-first. Each user sees only their own data.</div>
+      </div>
+      <div class="right"></div>
+    </header>
+
+    <!-- AUTH PANEL -->
+    <section class="panel" id="authPanel">
+      <h2 id="authTitle">Log in</h2>
+
+      <!-- Login view -->
+      <div id="loginView">
+        <div class="grid cols-2">
+          <div>
+            <label for="loginNick">Nickname</label>
+            <input id="loginNick" type="text" placeholder="e.g., eriks" autocomplete="username">
+          </div>
+          <div>
+            <label for="loginPass">Password</label>
+            <input id="loginPass" type="password" placeholder="••••••••" autocomplete="current-password">
+          </div>
+        </div>
+        <div class="row" style="margin-top:10px">
+          <button class="btn primary" id="loginBtn">Log in</button>
+          <button class="btn neutral" id="gotoSignupBtn">Sign up</button>
+        </div>
+        <div class="inline-note">Passwords are hashed locally (SHA-256). No server involved.</div>
+      </div>
+
+      <!-- Signup view -->
+      <div id="signupView" class="hide">
+        <div class="grid cols-2">
+          <div>
+            <label for="suName">Name</label>
+            <input id="suName" type="text" placeholder="Ēriks">
+          </div>
+          <div>
+            <label for="suSurname">Surname</label>
+            <input id="suSurname" type="text" placeholder="Visockis">
+          </div>
+        </div>
+        <div class="grid cols-2" style="margin-top:10px">
+          <div>
+            <label for="suNick">Nickname (unique)</label>
+            <input id="suNick" type="text" placeholder="eriks" autocomplete="username">
+          </div>
+          <div>
+            <label for="suEmail">Email</label>
+            <input id="suEmail" type="text" placeholder="name@example.com">
+          </div>
+        </div>
+        <div class="grid cols-2" style="margin-top:10px">
+          <div>
+            <label for="suPhone">Phone (optional)</label>
+            <input id="suPhone" type="text" placeholder="+371 ...">
+          </div>
+          <div>
+            <label for="suPass">Create password</label>
+            <input id="suPass" type="password" placeholder="At least 6 characters" autocomplete="new-password">
+          </div>
+        </div>
+        <div class="row" style="margin-top:10px">
+          <button class="btn primary" id="signupBtn">Create account</button>
+          <button class="btn ghost" id="gotoLoginBtn">Back to login</button>
+        </div>
+        <div class="inline-note">We’ll add monthly emails later using the stored email address.</div>
+      </div>
+    </section>
+
+    <!-- ADD PATIENT (only when logged in) -->
+    <section class="panel hide" id="addPanel">
+      <h2>Add patient</h2>
+      <div class="grid cols-2">
+        <div>
+          <label for="dateInput">Date</label>
+          <input id="dateInput" type="date" />
+        </div>
+        <div>
+          <label for="patientName">Patient name</label>
+          <input id="patientName" type="text" placeholder="Patient (optional)" />
+        </div>
+      </div>
+
+      <div class="grid cols-2" style="margin-top:10px">
+        <div>
+          <label for="grossAmount">Clinic amount (EUR)</label>
+          <input id="grossAmount" type="number" min="0" step="0.01" placeholder="e.g., 40.00" />
+        </div>
+        <div>
+          <label for="pct">Your %</label>
+          <input id="pct" type="number" min="0" max="100" step="0.1" placeholder="35" />
+        </div>
+      </div>
+
+      <div class="grid cols-2" style="margin-top:10px">
+        <div>
+          <label for="earned">Your earnings (linked)</label>
+          <input id="earned" type="number" step="0.01" />
+        </div>
+        <div>
+          <label for="notes">Notes (optional)</label>
+          <input id="notes" type="text" placeholder="cash/card, session type …" />
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:12px">
+        <button class="btn primary" id="addEntry">Add entry</button>
+        <button class="btn ghost" id="logoutBtn" style="flex:0 0 auto">Log out</button>
+        <span class="inline-note">Sticky: clinic amount & % are remembered per user.</span>
+      </div>
+    </section>
+
+    <!-- AUDIT (only when logged in) -->
+    <section class="panel hide" id="auditPanel">
+      <h2>Audit</h2>
+      <div class="row" style="gap:8px;flex-wrap:wrap">
+        <button class="btn neutral" data-range="today">Today</button>
+        <button class="btn neutral" data-range="yesterday">Yesterday</button>
+        <button class="btn neutral" data-range="thisWeek">This week</button>
+        <button class="btn neutral" data-range="lastWeek">Last week</button>
+        <button class="btn neutral" data-range="thisMonth">This month</button>
+        <button class="btn neutral" data-range="lastMonth">Last month</button>
+        <button class="btn neutral" data-range="thisYear">This year</button>
+        <button class="btn neutral" data-range="lastYear">Last year</button>
+        <button class="btn primary" id="manualOpen">Manual…</button>
+      </div>
+
+      <div id="summary" class="stats" style="margin-top:12px"></div>
+      <div id="results" class="table"></div>
+      <div id="emptyState" class="empty hide">No entries yet for the selected period.</div>
+
+      <div class="tools-row">
+        <button class="btn neutral" id="exportCsvBtn" style="flex:0 0 auto">Export CSV</button>
+        <span class="inline-note">Exports all entries of the logged-in user.</span>
+      </div>
+    </section>
+  </div>
+
+  <!-- Manual date modal -->
+  <div class="modal-backdrop" id="modalBackdrop" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <header><h2 id="modalTitle" style="margin:0">Select a custom period</h2></header>
+      <div class="grid cols-2">
+        <div><label for="fromDate">From</label><input type="date" id="fromDate"></div>
+        <div><label for="toDate">To</label><input type="date" id="toDate"></div>
+      </div>
+      <div class="footer">
+        <button class="btn ghost" id="closeModal">Cancel</button>
+        <button class="btn primary" id="applyManual">Apply</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+/* ======================= State & Persistence ======================= */
+const STORAGE_KEY = 'evfizio_tracker_auth_v1';
+/*
+state = {
+  users: { [nickname]: { name, surname, email, phone, passHash, createdAt, last:{gross,pct} } },
+  entries: [ { id, user: nickname, userName, date, createdAt, updatedAt, patientName, gross, pct, earned, notes } ],
+  currentUser: null
+}
+*/
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return { users:{}, entries:[], currentUser:null };
+    const s = JSON.parse(raw);
+    s.users ??= {}; s.entries ??= []; s.currentUser ??= null;
+    return s;
+  }catch(e){ console.error(e); return { users:{}, entries:[], currentUser:null }; }
+}
+function saveState(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+let state = loadState();
+
+/* ======================= Elements ======================= */
+const authPanel = document.getElementById('authPanel');
+const authTitle = document.getElementById('authTitle');
+const loginView = document.getElementById('loginView');
+const signupView = document.getElementById('signupView');
+const loginNick = document.getElementById('loginNick');
+const loginPass = document.getElementById('loginPass');
+const loginBtn  = document.getElementById('loginBtn');
+const gotoSignupBtn = document.getElementById('gotoSignupBtn');
+
+const suName = document.getElementById('suName');
+const suSurname = document.getElementById('suSurname');
+const suNick = document.getElementById('suNick');
+const suEmail = document.getElementById('suEmail');
+const suPhone = document.getElementById('suPhone');
+const suPass = document.getElementById('suPass');
+const signupBtn = document.getElementById('signupBtn');
+const gotoLoginBtn = document.getElementById('gotoLoginBtn');
+
+const addPanel = document.getElementById('addPanel');
+const auditPanel = document.getElementById('auditPanel');
+
+const dateInputEl   = document.getElementById('dateInput');
+const patientNameEl = document.getElementById('patientName');
+const grossAmountEl = document.getElementById('grossAmount');
+const pctEl         = document.getElementById('pct');
+const earnedEl      = document.getElementById('earned');
+const notesEl       = document.getElementById('notes');
+const addEntryEl    = document.getElementById('addEntry');
+const logoutBtn     = document.getElementById('logoutBtn');
+
+const summaryEl = document.getElementById('summary');
+const resultsEl = document.getElementById('results');
+const emptyStateEl = document.getElementById('emptyState');
+
+const exportCsvBtn  = document.getElementById('exportCsvBtn');
+
+const modalBackdrop = document.getElementById('modalBackdrop');
+const manualOpen = document.getElementById('manualOpen');
+const closeModal = document.getElementById('closeModal');
+const applyManual = document.getElementById('applyManual');
+const fromDateEl = document.getElementById('fromDate');
+const toDateEl = document.getElementById('toDate');
+
+/* ======================= Utils ======================= */
+function pad(n){ return String(n).padStart(2,'0'); }
+function todayISO(){ const d=new Date(); return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; }
+function dateOnlyISO(d){ return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; }
+function round2(n){ return Math.round(n*100)/100; }
+function clamp(n,min,max){ return Math.max(min, Math.min(max, n)); }
+function fmtTs(iso){ if(!iso) return ''; const d=new Date(iso);
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`; }
+function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m])); }
+function escapeAttr(s){ return escapeHtml(s).replace(/"/g,'&quot;'); }
+function trunc(s, n){ return s && s.length>n ? s.slice(0,n-1)+'…' : (s||''); }
+function toast(msg, kind='ok'){
+  if(!window._toastBox){
+    const box = document.createElement('div');
+    box.style.position='fixed'; box.style.left='50%'; box.style.bottom='24px';
+    box.style.transform='translateX(-50%)'; box.style.zIndex='9999';
+    document.body.appendChild(box);
+    window._toastBox = box;
+  }
+  const el = document.createElement('div');
+  el.textContent = msg;
+  el.style.background = kind==='warn' ? '#fff6e5' : '#e9fbf5';
+  el.style.border = '1px solid ' + (kind==='warn' ? '#f0ca6b' : '#a7e7d3');
+  el.style.color = '#0b0f13';
+  el.style.padding = '10px 14px';
+  el.style.borderRadius = '12px';
+  el.style.boxShadow = '0 8px 24px rgba(0,0,0,0.08)';
+  el.style.marginTop = '8px';
+  window._toastBox.appendChild(el);
+  setTimeout(()=>{ el.remove(); }, 1800);
+}
+
+/* Crypto: SHA-256 password hashing */
+async function sha256Hex(str){
+  const enc = new TextEncoder().encode(str);
+  const buf = await crypto.subtle.digest('SHA-256', enc);
+  return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+/* ======================= Auth UI switching ======================= */
+gotoSignupBtn.addEventListener('click', ()=>{ loginView.classList.add('hide'); signupView.classList.remove('hide'); authTitle.textContent='Sign up'; });
+gotoLoginBtn.addEventListener('click',   ()=>{ signupView.classList.add('hide'); loginView.classList.remove('hide'); authTitle.textContent='Log in'; });
+
+/* ======================= Signup ======================= */
+signupBtn.addEventListener('click', async ()=>{
+  const name = suName.value.trim();
+  const surname = suSurname.value.trim();
+  const nick = suNick.value.trim();
+  const email = suEmail.value.trim();
+  const phone = suPhone.value.trim();
+  const pass = suPass.value;
+
+  if(!name || !surname || !nick || !email || !pass){ toast('Please fill Name, Surname, Nickname, Email, and Password', 'warn'); return; }
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ toast('Enter a valid email', 'warn'); return; }
+  if(pass.length < 6){ toast('Password must be at least 6 characters', 'warn'); return; }
+  if(state.users[nick]){ toast('Nickname already exists', 'warn'); return; }
+
+  const passHash = await sha256Hex(pass);
+  state.users[nick] = {
+    name, surname, email, phone, passHash,
+    createdAt: new Date().toISOString(),
+    last: { gross: '', pct: 35 } // sticky defaults per user
+  };
+  state.currentUser = nick;
+  saveState();
+
+  // Clear signup inputs
+  suName.value = suSurname.value = suNick.value = suEmail.value = suPhone.value = suPass.value = '';
+
+  toast('Account created. Logged in.');
+  showAppForCurrentUser();
+});
+
+/* ======================= Login ======================= */
+loginBtn.addEventListener('click', async ()=>{
+  const nick = loginNick.value.trim();
+  const pass = loginPass.value;
+  const user = state.users[nick];
+  if(!user){ toast('User not found', 'warn'); return; }
+  const passHash = await sha256Hex(pass);
+  if(passHash !== user.passHash){ toast('Incorrect password', 'warn'); return; }
+  state.currentUser = nick; saveState();
+
+  // Clear login fields (optional)
+  loginNick.value = ''; loginPass.value = '';
+
+  toast(`Welcome, ${user.name}!`);
+  showAppForCurrentUser(true);
+});
+
+/* Auto-login view if already logged in */
+window.addEventListener('load', ()=>{
+  if(state.currentUser){
+    showAppForCurrentUser(true);
+  } else {
+    // default: show login panel only
+    authPanel.classList.remove('hide');
+    addPanel.classList.add('hide');
+    auditPanel.classList.add('hide');
+  }
+});
+
+/* Log out */
+logoutBtn.addEventListener('click', ()=>{
+  state.currentUser = null; saveState();
+  authPanel.classList.remove('hide');
+  loginView.classList.remove('hide'); signupView.classList.add('hide'); authTitle.textContent='Log in';
+  addPanel.classList.add('hide'); auditPanel.classList.add('hide');
+  toast('Logged out');
+});
+
+/* ======================= App visibility for user ======================= */
+function showAppForCurrentUser(scrollToAdd=false){
+  const nick = state.currentUser;
+  if(!nick){ return; }
+
+  // show add/audit; hide auth
+  authPanel.classList.add('hide');
+  addPanel.classList.remove('hide');
+  auditPanel.classList.remove('hide');
+
+  hydrateAddFormDefaults();
+  const rng = getRange('thisMonth'); renderAudit(rng.start, rng.end);
+
+  if(scrollToAdd){
+    setTimeout(()=> addPanel.scrollIntoView({behavior:'smooth', block:'start'}), 100);
+  }
+}
+
+/* ======================= Add Form: sticky & mutual math ======================= */
+function hydrateAddFormDefaults(){
+  const u = state.users[state.currentUser];
+  dateInputEl.value = todayISO();
+
+  const last = u?.last || {};
+  grossAmountEl.value = Number.isFinite(+last.gross) ? +last.gross : '';
+  pctEl.value         = Number.isFinite(+last.pct)   ? +last.pct   : 35;
+  // compute earned if possible
+  updateLinkedValues('gross_or_pct');
+  earnedEl.value = Number.isFinite(+earnedEl.value) ? (+earnedEl.value).toFixed(2) : '';
+  notesEl.value = '';
+}
+
+let linkingGuard = false;
+function updateLinkedValues(trigger){
+  if(linkingGuard) return;
+  linkingGuard = true;
+  const gross = parseFloat(grossAmountEl.value);
+  const pct   = parseFloat(pctEl.value);
+  const earned= parseFloat(earnedEl.value);
+
+  if(trigger==='earned' && Number.isFinite(earned) && Number.isFinite(gross) && gross>0){
+    pctEl.value = clamp((earned / gross) * 100, 0, 100).toFixed(2);
+  } else if((trigger==='gross'||trigger==='pct'||trigger==='gross_or_pct') && Number.isFinite(gross) && Number.isFinite(pct)){
+    earnedEl.value = (gross * (pct/100)).toFixed(2);
+  } else if(trigger==='gross' && Number.isFinite(earned) && Number.isFinite(gross) && gross>0 && !Number.isFinite(pct)){
+    pctEl.value = clamp((earned / gross) * 100, 0, 100).toFixed(2);
+  }
+  linkingGuard = false;
+}
+grossAmountEl.addEventListener('input', ()=>updateLinkedValues('gross'));
+pctEl.addEventListener('input',         ()=>updateLinkedValues('pct'));
+earnedEl.addEventListener('input',      ()=>updateLinkedValues('earned'));
+
+/* ======================= Add Entry ======================= */
+function uid(){ return Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8); }
+addEntryEl.addEventListener('click', ()=>{
+  const nick = state.currentUser;
+  if(!nick){ toast('Please log in first', 'warn'); return; }
+  const user = state.users[nick];
+
+  const dt = dateInputEl.value || todayISO();
+  const patientName = patientNameEl.value.trim();
+  const gross = parseFloat(grossAmountEl.value);
+  let pct = parseFloat(pctEl.value);
+  let earned = parseFloat(earnedEl.value);
+  if(!Number.isFinite(gross) || gross<0){ toast('Enter a valid clinic amount', 'warn'); return; }
+  if(!Number.isFinite(pct)) pct = 35;
+  pct = clamp(pct,0,100);
+  if(!Number.isFinite(earned)) earned = +(gross * (pct/100)).toFixed(2);
+
+  const entry = {
+    id: uid(),
+    user: nick,
+    userName: `${user.name} ${user.surname}`,
+    date: dt,
+    createdAt: new Date().toISOString(),
+    updatedAt: null,
+    patientName,
+    gross: round2(gross),
+    pct: round2(pct),
+    earned: round2(earned),
+    notes: notesEl.value.trim()
+  };
+  state.entries.push(entry);
+
+  // remember sticky values per user
+  user.last = { gross: entry.gross, pct: entry.pct };
+
+  saveState();
+
+  // clear some fields, keep sticky defaults
+  patientNameEl.value = '';
+  notesEl.value = '';
+  hydrateAddFormDefaults();
+
+  toast('Entry added');
+
+  if(currentRange){ renderAudit(currentRange.start, currentRange.end); }
+});
+
+/* ======================= Audit helpers & rendering ======================= */
+function startOfWeek(d){ const date=new Date(d.getFullYear(),d.getMonth(),d.getDate()); const day=(date.getDay()+6)%7; date.setDate(date.getDate()-day); return date; }
+function startOfMonth(d){ return new Date(d.getFullYear(), d.getMonth(), 1); }
+function endOfMonth(d){ return new Date(d.getFullYear(), d.getMonth()+1, 0); }
+function startOfYear(d){ return new Date(d.getFullYear(), 0, 1); }
+function endOfYear(d){ return new Date(d.getFullYear(), 11, 31); }
+function getRange(kind){
+  const now=new Date();
+  if(kind==='today'){ const s=dateOnlyISO(now); return {start:s,end:s}; }
+  if(kind==='yesterday'){ const y=new Date(now); y.setDate(y.getDate()-1); const s=dateOnlyISO(y); return {start:s,end:s}; }
+  if(kind==='thisWeek'){ const s=startOfWeek(now), e=new Date(s); e.setDate(s.getDate()+6); return {start:dateOnlyISO(s), end:dateOnlyISO(e)}; }
+  if(kind==='lastWeek'){ const e=startOfWeek(now); e.setDate(e.getDate()-1); const s=new Date(e); s.setDate(e.getDate()-6); return {start:dateOnlyISO(s), end:dateOnlyISO(e)}; }
+  if(kind==='thisMonth'){ const s=startOfMonth(now), e=endOfMonth(now); return {start:dateOnlyISO(s), end:dateOnlyISO(e)}; }
+  if(kind==='lastMonth'){ const lm=new Date(now.getFullYear(), now.getMonth()-1, 1); const s=startOfMonth(lm), e=endOfMonth(lm); return {start:dateOnlyISO(s), end:dateOnlyISO(e)}; }
+  if(kind==='thisYear'){ const s=startOfYear(now), e=endOfYear(now); return {start:dateOnlyISO(s), end:dateOnlyISO(e)}; }
+  if(kind==='lastYear'){ const y=now.getFullYear()-1; const s=new Date(y,0,1), e=new Date(y,11,31); return {start:dateOnlyISO(s), end:dateOnlyISO(e)}; }
+  return null;
+}
+
+let currentRange = null;
+
+function renderAudit(fromISO, toISO){
+  currentRange = {start: fromISO, end: toISO};
+  const nick = state.currentUser;
+  const entries = state.entries
+    .filter(e => e.user === nick)
+    .filter(e => e.date >= fromISO && e.date <= toISO)
+    .sort((a,b)=> (b.date.localeCompare(a.date) || (b.createdAt||'').localeCompare(a.createdAt||'')));
+
+  if(entries.length===0){
+    summaryEl.innerHTML = '';
+    resultsEl.innerHTML = '';
+    emptyStateEl.classList.remove('hide');
+    return;
+  } else emptyStateEl.classList.add('hide');
+
+  const totalEarned = entries.reduce((s,e)=> s + (e.earned||0), 0);
+  const totalGross  = entries.reduce((s,e)=> s + (e.gross ||0), 0);
+  const avgPerPatient = entries.length ? (totalEarned/entries.length) : 0;
+
+  summaryEl.innerHTML = `
+    <div class="stat"><div class="k">Period</div><div class="v">${fromISO} → ${toISO}</div></div>
+    <div class="stat"><div class="k">Total earned</div><div class="v">€ ${totalEarned.toFixed(2)}</div></div>
+    <div class="stat"><div class="k">Patients</div><div class="v">${entries.length} <span class="pill" title="Average per patient">avg € ${avgPerPatient.toFixed(2)}</span></div></div>
+  `;
+
+  resultsEl.innerHTML = '';
+  for(const e of entries){
+    const row = document.createElement('div');
+    row.className = 'rowline';
+    row.dataset.id = e.id;
+    row.innerHTML = renderRowView(e);
+    resultsEl.appendChild(row);
+
+    row.addEventListener('click', (ev)=>{
+      const t = ev.target;
+      if(t.matches('.editBtn')) enterEditMode(e.id);
+      if(t.matches('.deleteBtn')) deleteEntry(e.id);
+      if(t.matches('.saveBtn')) saveEdit(e.id);
+      if(t.matches('.cancelBtn')) cancelEdit(e.id);
+    });
+  }
+}
+
+function renderRowView(e){
+  return `
+    <div>
+      <div><strong>${escapeHtml(e.patientName || '—')}</strong></div>
+      <div class="ts">${e.date} · created ${fmtTs(e.createdAt)}${e.updatedAt ? ' · updated '+fmtTs(e.updatedAt):''}</div>
+    </div>
+    <div>Clinic: <strong>€ ${e.gross.toFixed(2)}</strong></div>
+    <div>%: <strong>${e.pct.toFixed(2)}%</strong></div>
+    <div>You: <strong>€ ${e.earned.toFixed(2)}</strong></div>
+    <div><span class="pill" title="${escapeHtml(e.notes||'')}">${e.notes ? escapeHtml(trunc(e.notes,22)) : 'No notes'}</span></div>
+    <div class="row" style="gap:6px;justify-content:flex-end">
+      <button class="btn neutral editBtn">Edit</button>
+      <button class="btn danger deleteBtn">Delete</button>
+    </div>
+  `;
+}
+function renderRowEdit(e){
+  return `
+    <div>
+      <input class="in-patientName" type="text" value="${escapeAttr(e.patientName||'')}" />
+      <div class="ts">${e.date} · created ${fmtTs(e.createdAt)}${e.updatedAt ? ' · updated '+fmtTs(e.updatedAt):''}</div>
+    </div>
+    <div><input class="in-gross" type="number" step="0.01" min="0" value="${e.gross.toFixed(2)}" /></div>
+    <div><input class="in-pct" type="number" step="0.01" min="0" max="100" value="${e.pct.toFixed(2)}" /></div>
+    <div><input class="in-earned" type="number" step="0.01" min="0" value="${e.earned.toFixed(2)}" /></div>
+    <div><input class="in-notes" type="text" value="${escapeAttr(e.notes||'')}" /></div>
+    <div class="row" style="gap:6px;justify-content:flex-end">
+      <button class="btn primary saveBtn">Save</button>
+      <button class="btn neutral cancelBtn">Cancel</button>
+    </div>
+  `;
+}
+function enterEditMode(id){
+  const row = resultsEl.querySelector(`.rowline[data-id="${id}"]`);
+  const e = state.entries.find(x=>x.id===id);
+  if(row && e){ row.innerHTML = renderRowEdit(e); wireRowLinkedInputs(row); }
+}
+function cancelEdit(id){
+  const row = resultsEl.querySelector(`.rowline[data-id="${id}"]`);
+  const e = state.entries.find(x=>x.id===id);
+  if(row && e){ row.innerHTML = renderRowView(e); }
+}
+function wireRowLinkedInputs(row){
+  let guard=false;
+  const g=row.querySelector('.in-gross');
+  const p=row.querySelector('.in-pct');
+  const y=row.querySelector('.in-earned');
+  function link(trigger){
+    if(guard) return; guard=true;
+    const gross=parseFloat(g.value), pct=parseFloat(p.value), earned=parseFloat(y.value);
+    if(trigger==='earned' && Number.isFinite(earned) && Number.isFinite(gross) && gross>0){
+      p.value = clamp((earned/gross)*100,0,100).toFixed(2);
+    }else if((trigger==='gross'||trigger==='pct') && Number.isFinite(gross) && Number.isFinite(pct)){
+      y.value = (gross*(pct/100)).toFixed(2);
+    }
+    guard=false;
+  }
+  g.addEventListener('input', ()=>link('gross'));
+  p.addEventListener('input', ()=>link('pct'));
+  y.addEventListener('input', ()=>link('earned'));
+}
+function saveEdit(id){
+  const idx = state.entries.findIndex(x=>x.id===id);
+  if(idx<0) return;
+  const row = resultsEl.querySelector(`.rowline[data-id="${id}"]`);
+  const e = state.entries[idx];
+  const patientName = row.querySelector('.in-patientName').value.trim();
+  const gross = parseFloat(row.querySelector('.in-gross').value);
+  let pct = parseFloat(row.querySelector('.in-pct').value);
+  let earned = parseFloat(row.querySelector('.in-earned').value);
+  const notes = row.querySelector('.in-notes').value.trim();
+
+  if(!Number.isFinite(gross) || gross<0){ toast('Invalid clinic amount', 'warn'); return; }
+  if(!Number.isFinite(pct)){
+    if(Number.isFinite(earned) && gross>0) pct = (earned/gross)*100;
+    else pct = 35;
+  }
+  pct = clamp(pct,0,100);
+  if(!Number.isFinite(earned)) earned = +(gross * (pct/100)).toFixed(2);
+
+  e.patientName = patientName;
+  e.gross = round2(gross);
+  e.pct = round2(pct);
+  e.earned = round2(earned);
+  e.notes = notes;
+  e.updatedAt = new Date().toISOString();
+
+  saveState();
+  row.innerHTML = renderRowView(e);
+  renderAudit(currentRange.start, currentRange.end);
+  toast('Entry updated');
+}
+function deleteEntry(id){
+  if(!confirm('Delete this entry? This cannot be undone.')) return;
+  const idx = state.entries.findIndex(x=>x.id===id);
+  if(idx<0) return;
+  state.entries.splice(idx,1);
+  saveState();
+  const row = resultsEl.querySelector(`.rowline[data-id="${id}"]`);
+  if(row) row.remove();
+  if(currentRange){ renderAudit(currentRange.start, currentRange.end); }
+  toast('Entry deleted');
+}
+
+/* ======================= Audit buttons & modal ======================= */
+document.getElementById('auditPanel').addEventListener('click', (e)=>{
+  const btn = e.target.closest('button[data-range]');
+  if(!btn) return;
+  const range = getRange(btn.dataset.range);
+  if(range){ renderAudit(range.start, range.end); }
+});
+manualOpen.addEventListener('click', ()=>{
+  const d = new Date();
+  fromDateEl.value = dateOnlyISO(new Date(d.getFullYear(), d.getMonth(), 1));
+  toDateEl.value = todayISO();
+  openModal();
+});
+closeModal.addEventListener('click', closeModalFn);
+applyManual.addEventListener('click', ()=>{
+  const f = fromDateEl.value; const t = toDateEl.value;
+  if(!f || !t || f>t){ toast('Choose a valid period', 'warn'); return; }
+  closeModalFn(); renderAudit(f,t);
+});
+function openModal(){ modalBackdrop.style.display='flex'; modalBackdrop.setAttribute('aria-hidden','false'); }
+function closeModalFn(){ modalBackdrop.style.display='none'; modalBackdrop.setAttribute('aria-hidden','true'); }
+
+/* ======================= CSV Export ======================= */
+exportCsvBtn.addEventListener('click', ()=>{
+  const nick = state.currentUser;
+  if(!nick){ toast('Log in to export', 'warn'); return; }
+  const rows = state.entries.filter(e=>e.user===nick);
+  if(rows.length===0){ toast('No data to export', 'warn'); return; }
+  const header = ['id','date','createdAt','updatedAt','user','userName','patientName','clinicEUR','pct','earnedEUR','notes'];
+  const csv = [header.join(',')].concat(
+    rows.map(e=>[
+      e.id,
+      e.date,
+      e.createdAt||'',
+      e.updatedAt||'',
+      e.user,
+      e.userName,
+      e.patientName?.replaceAll('"','""')||'',
+      e.gross.toFixed(2),
+      e.pct.toFixed(2),
+      e.earned.toFixed(2),
+      (e.notes||'').replaceAll('"','""')
+    ].map(v=>`"${String(v)}"`).join(','))
+  ).join('\n');
+
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const uname = (state.users[nick]?.name || 'user').replace(/\s+/g,'_');
+  a.href = url; a.download = `ev-fizio-${uname}.csv`;
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+});
+
+/* ======================= Initial render ======================= */
+(function firstRender(){
+  if(state.currentUser){
+    showAppForCurrentUser();
+  }
+})();
+</script>
+</body>
+</html>
