@@ -182,28 +182,37 @@ qs('#gotoLoginBtn').addEventListener('click',()=>{signupView.classList.add('hide
 
 /*** Supabase: signup/login/logout ***/
 async function signup(){
-  const name=suName.value.trim(), surname=suSurname.value.trim(), nick=suNick.value.trim();
-  const email=suEmail.value.trim(), phone=suPhone.value.trim(), pass=suPass.value;
-  if(!name||!surname||!nick||!email||!pass){toast('Fill Name, Surname, Nickname, Email, Password','warn'); return;}
-  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){toast('Invalid email','warn'); return;}
-  if(pass.length<6){toast('Password too short','warn'); return;}
+  const name = suName.value.trim();
+  const surname = suSurname.value.trim();
+  const nick = suNick.value.trim();
+  const email = suEmail.value.trim();
+  const phone = suPhone.value.trim();
+  const pass = suPass.value;
 
-  const { data, error } = await supabaseClient.auth.signUp({ email, password: pass });
-  if(error){ toast(error.message,'warn'); return; }
-  const user=data.user;
-  // upsert profile
-  const { error: pErr } = await supabaseClient.from('profiles').insert({
-    id:user.id, name, surname, nickname:nick, email, phone: phone || null
+  if(!name||!surname||!nick||!email||!pass){ toast('Fill Name, Surname, Nickname, Email, Password','warn'); return; }
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ toast('Invalid email','warn'); return; }
+  if(pass.length<6){ toast('Password too short','warn'); return; }
+
+  // 👉 NO manual insert into profiles. Let the DB trigger do it.
+  const { data, error } = await supabaseClient.auth.signUp({
+    email,
+    password: pass,
+    options: {
+      data: { name, surname, nickname: nick, phone: phone || null }
+    }
   });
-  if(pErr){ toast(pErr.message,'warn'); return; }
-  // init sticky
-  await supabaseClient.from('user_settings').upsert({ user_id:user.id, sticky_gross:null, sticky_pct:35 }, { onConflict:'user_id' });
+  if (error) { toast(error.message, 'warn'); return; }
 
-  // clear and show app
-  suName.value=suSurname.value=suNick.value=suEmail.value=suPhone.value=suPass.value='';
-  toast('Account created. Logged in.');
+  // If email confirmations are ON, tell the user to check inbox.
+  toast('Account created. Check your email to confirm (if required).');
+
+  // Optional: if confirmations are OFF, you’re already logged in:
   showApp(true);
+
+  // clear fields
+  suName.value = suSurname.value = suNick.value = suEmail.value = suPhone.value = suPass.value = '';
 }
+
 
 async function login(){
   const email=loginEmail.value.trim(), pass=loginPass.value;
