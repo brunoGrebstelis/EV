@@ -2,9 +2,11 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
 <title>EV Fizio</title>
-<!-- Favicon + Apple Touch Icon -->
+
+<!-- App Icons / PWA-ish feel -->
 <link rel="icon" type="image/png" href="visockis.jpg">
 <link rel="apple-touch-icon" href="visockis.jpg">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -12,33 +14,95 @@
 <meta name="apple-mobile-web-app-title" content="EV Fizio">
 
 <style>
-  :root{--bg:#f6f7f8;--panel:#fff;--text:#0b0f13;--muted:#5b6470;--accent:#10a37f;--accent2:#0b8a6b;--danger:#e5484d;--border:#e3e5e8;--shadow:0 1px 2px rgba(0,0,0,.04),0 8px 24px rgba(0,0,0,.06);--r:16px}
-  html,body{height:100%} body{margin:0;background:var(--bg);color:var(--text);font:16px/1.5 system-ui,-apple-system,Segoe UI,Inter,Roboto,Arial}
-  .wrap{max-width:860px;margin-inline:auto;padding:clamp(12px,2vw,20px)}
+  :root{
+    --bg:#f6f7f8;--panel:#fff;--text:#0b0f13;--muted:#5b6470;--accent:#10a37f;--accent2:#0b8a6b;
+    --danger:#e5484d;--border:#e3e5e8;--shadow:0 1px 2px rgba(0,0,0,.04),0 8px 24px rgba(0,0,0,.06);--r:16px
+  }
+
+  /* Phone-first “app” look */
+  html,body{height:100%}
+  body{
+    margin:0;background:var(--bg);color:var(--text);
+    font:17px/1.5 system-ui,-apple-system,Segoe UI,Inter,Roboto,Arial; /* bigger base */
+    -webkit-text-size-adjust:100%; /* prevent auto-zooming on inputs iOS */
+  }
+
+  /* Narrow, app-like column that fills the phone screen */
+  .wrap{
+    width:100%;
+    max-width:420px;                 /* feels like native app width */
+    margin-inline:auto;
+    padding:16px;                    /* consistent padding on phones */
+  }
+
+  /* On wider screens, breathe a bit more */
+  @media (min-width:900px){
+    body{font-size:16px}
+    .wrap{max-width:860px;padding:clamp(12px,2vw,20px)}
+  }
+
   header{display:flex;align-items:center;gap:12px;margin:8px 0 16px}
-  .logo{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#10a37f,#72e7c7);display:grid;place-items:center;color:#fff;font-weight:800;box-shadow:var(--shadow)}
-  h1{margin:0;font-size:clamp(18px,2.4vw,24px)} .sub{color:var(--muted);font-size:14px}
+  .logo{width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,#10a37f,#72e7c7);
+        display:grid;place-items:center;color:#fff;font-weight:800;box-shadow:var(--shadow)}
+  h1{margin:0;font-size:22px}
+  .sub{color:var(--muted);font-size:13px}
+
   .panel{background:#fff;border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow);padding:16px;margin:14px 0}
-  .panel h2{margin:0 0 12px;font-size:clamp(16px,2vw,18px)}
-  .grid{display:grid;gap:12px} .grid.cols-2{grid-template-columns:1fr 1fr} @media(max-width:700px){.grid.cols-2{grid-template-columns:1fr}}
+  .panel h2{margin:0 0 12px;font-size:18px}
+
+  .grid{display:grid;gap:12px}
+  .grid.cols-2{grid-template-columns:1fr 1fr}
+  @media(max-width:700px){.grid.cols-2{grid-template-columns:1fr}} /* stack on phones */
+
   label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
-  input[type="text"],input[type="number"],input[type="password"],input[type="date"]{width:100%;box-sizing:border-box;background:#fff;border:1px solid var(--border);border-radius:12px;padding:12px}
-  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.row>*{flex:1 1 auto}
-  .btn{appearance:none;border:1px solid transparent;border-radius:12px;padding:10px 14px;font-weight:600;cursor:pointer;transition:.2s transform,.2s background-color;white-space:nowrap}
-  .btn:active{transform:scale(.98)} .btn.primary{background:var(--accent);color:#fff}.btn.primary:hover{background:var(--accent2)}
-  .btn.neutral{background:#fff;border-color:var(--border)} .btn.danger{background:var(--danger);color:#fff} .btn.ghost{background:transparent;border-color:var(--border);color:var(--muted)}
-  .inline-note{font-size:12px;color:var(--muted)} .tools-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}
-  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:8px} @media(max-width:700px){.stats{grid-template-columns:1fr}}
-  .stat{background:#fff;border:1px solid var(--border);border-radius:12px;padding:12px}.stat .k{font-size:12px;color:var(--muted)}.stat .v{font-size:20px;font-weight:700}
+  input[type="text"],input[type="number"],input[type="password"],input[type="date"]{
+    width:100%;box-sizing:border-box;background:#fff;border:1px solid var(--border);
+    border-radius:12px;padding:13px 14px;font-size:16px
+  }
+
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .row>*{flex:1 1 auto}
+
+  .btn{
+    appearance:none;border:1px solid transparent;border-radius:12px;padding:12px 14px;
+    font-weight:700;font-size:16px;cursor:pointer;transition:.2s transform,.2s background-color;white-space:nowrap
+  }
+  .btn:active{transform:scale(.98)}
+  .btn.primary{background:var(--accent);color:#fff}
+  .btn.primary:hover{background:var(--accent2)}
+  .btn.neutral{background:#fff;border-color:var(--border)}
+  .btn.danger{background:var(--danger);color:#fff}
+  .btn.ghost{background:transparent;border-color:var(--border);color:var(--muted)}
+
+  .inline-note{font-size:12px;color:var(--muted)}
+  .tools-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}
+
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:8px}
+  @media(max-width:700px){.stats{grid-template-columns:1fr}}
+
+  .stat{background:#fff;border:1px solid var(--border);border-radius:12px;padding:12px}
+  .stat .k{font-size:12px;color:var(--muted)}
+  .stat .v{font-size:20px;font-weight:700}
+
   .table{margin-top:10px;border-top:1px solid var(--border)}
-  .rowline{display:grid;grid-template-columns:1.2fr .9fr .6fr .7fr .6fr auto;gap:10px;padding:12px 0;border-bottom:1px solid var(--border);align-items:center}
-  @media(max-width:900px){.rowline{grid-template-columns:1.2fr .7fr .6fr .6fr .6fr auto}} @media(max-width:700px){.rowline{grid-template-columns:1fr;gap:6px}}
-  .rowline .ts{font-size:12px;color:var(--muted)} .pill{font-size:12px;padding:4px 8px;border-radius:999px;background:#f0f3f5;color:#223;display:inline-block}
+  .rowline{
+    display:grid;grid-template-columns:1.2fr .9fr .6fr .7fr .6fr auto;
+    gap:10px;padding:12px 0;border-bottom:1px solid var(--border);align-items:center
+  }
+  @media(max-width:900px){.rowline{grid-template-columns:1.2fr .7fr .6fr .6fr .6fr auto}}
+  @media(max-width:700px){.rowline{grid-template-columns:1fr;gap:6px}}
+  .rowline .ts{font-size:12px;color:var(--muted)}
+  .pill{font-size:12px;padding:4px 8px;border-radius:999px;background:#f0f3f5;color:#223;display:inline-block}
+
   .empty{padding:18px;text-align:center;color:var(--muted)}
+
   .modal-backdrop{position:fixed;inset:0;background:rgba(15,18,22,.35);display:none;align-items:flex-end;justify-content:center}
   .modal{width:100%;max-width:560px;background:#fff;border:1px solid var(--border);border-top-left-radius:16px;border-top-right-radius:16px;box-shadow:var(--shadow);padding:14px;transform:translateY(8px)}
-  .modal header{margin:0 0 10px 0}.modal .footer{display:flex;justify-content:flex-end;gap:8px;margin-top:10px}
-  .hide{display:none}.right{margin-left:auto}
+  .modal header{margin:0 0 10px 0}
+  .modal .footer{display:flex;justify-content:flex-end;gap:8px;margin-top:10px}
+
+  .hide{display:none}
+  .right{margin-left:auto}
 </style>
 </head>
 <body>
@@ -151,13 +215,12 @@
 <!-- Supabase client -->
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <script>
-/*** CONFIG — fill these ***/
-const SUPABASE_URL = 'https://qumdeojxaxqfxzdyflez.supabase.co'; // e.g. https://qmd...supabase.co
+/*** CONFIG ***/
+const SUPABASE_URL = 'https://qumdeojxaxqfxzdyflez.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF1bWRlb2p4YXhxZnh6ZHlmbGV6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIyNjU5MjgsImV4cCI6MjA3Nzg0MTkyOH0.nOpd4eChqNE16US9e8Sbz9yUcKG7t4xXDQr_PPzGGok';
-if(!SUPABASE_URL){ alert('Missing Supabase URL — paste your Project URL at the top of the script.'); }
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
-/*** DOM refs, utils, toasts ***/
+/*** DOM refs / utils / toasts ***/
 const qs = s => document.querySelector(s);
 const authPanel=qs('#authPanel'), authTitle=qs('#authTitle');
 const loginView=qs('#loginView'), signupView=qs('#signupView');
@@ -199,26 +262,19 @@ async function signup(){
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ toast('Invalid email','warn'); return; }
   if(pass.length<6){ toast('Password too short','warn'); return; }
 
-  // 👉 NO manual insert into profiles. Let the DB trigger do it.
+  // No manual insert into profiles; trigger will create it.
   const { data, error } = await supabaseClient.auth.signUp({
     email,
     password: pass,
-    options: {
-      data: { name, surname, nickname: nick, phone: phone || null }
-    }
+    options: { data: { name, surname, nickname: nick, phone: phone || null } }
   });
   if (error) { toast(error.message, 'warn'); return; }
 
-  // If email confirmations are ON, tell the user to check inbox.
   toast('Account created. Check your email to confirm (if required).');
-
-  // Optional: if confirmations are OFF, you’re already logged in:
   showApp(true);
 
-  // clear fields
   suName.value = suSurname.value = suNick.value = suEmail.value = suPhone.value = suPass.value = '';
 }
-
 
 async function login(){
   const email=loginEmail.value.trim(), pass=loginPass.value;
@@ -236,7 +292,6 @@ async function logout(){
   loginView.classList.remove('hide'); signupView.classList.add('hide'); authTitle.textContent='Log in';
   toast('Logged out');
 }
-
 qs('#signupBtn').addEventListener('click', signup);
 qs('#loginBtn').addEventListener('click', login);
 qs('#logoutBtn').addEventListener('click', logout);
@@ -302,10 +357,8 @@ async function addEntry(){
   const { error } = await supabaseClient.from('entries').insert(payload);
   if(error){ toast(error.message,'warn'); return; }
 
-  // remember sticky
   await setSticky(payload.gross, payload.pct);
 
-  // clear patient + reload audit
   patientNameEl.value=''; notesEl.value='';
   const sticky = await getSticky(); hydrateAddFormDefaults(sticky);
   toast('Entry added');
@@ -445,13 +498,13 @@ async function saveEditRow(row,id){
 /*** Audit buttons & modal ***/
 qs('#auditPanel').addEventListener('click',async e=>{const btn=e.target.closest('button[data-range]'); if(!btn) return; const r=getRange(btn.dataset.range); if(r) await renderAudit(r.start,r.end);});
 manualOpen.addEventListener('click',()=>{const d=new Date(); fromDateEl.value=dateOnlyISO(new Date(d.getFullYear(),d.getMonth(),1)); toDateEl.value=todayISO(); openModal();});
-closeModal.addEventListener('click',closeModalFn); applyManual.addEventListener('click',async ()=>{const f=fromDateEl.value,t=toDateEl.value; if(!f||!t||f>t){toast('Choose a valid period','warn');return;} closeModalFn(); await renderAudit(f,t);});
+closeModal.addEventListener('click',closeModalFn);
+applyManual.addEventListener('click',async ()=>{const f=fromDateEl.value,t=toDateEl.value; if(!f||!t||f>t){toast('Choose a valid period','warn');return;} closeModalFn(); await renderAudit(f,t);});
 function openModal(){modalBackdrop.style.display='flex';modalBackdrop.setAttribute('aria-hidden','false');}
 function closeModalFn(){modalBackdrop.style.display='none';modalBackdrop.setAttribute('aria-hidden','true');}
 
 /*** CSV Export ***/
 exportCsvBtn.addEventListener('click', async ()=>{
-  // export all rows for current user (not only current period)
   const { data: { user } } = await supabaseClient.auth.getUser();
   if(!user){ toast('Log in to export','warn'); return; }
   const { data, error } = await supabaseClient.from('entries').select('*').order('date',{ascending:false});
@@ -459,7 +512,9 @@ exportCsvBtn.addEventListener('click', async ()=>{
   if(!data.length){ toast('No data to export','warn'); return; }
   const header=['id','date','created_at','updated_at','patient_name','gross','pct','earned','notes'];
   const csv=[header.join(',')].concat(
-    data.map(e=>[e.id,e.date,e.created_at||'',e.updated_at||'',(e.patient_name||'').replaceAll('"','""'),Number(e.gross).toFixed(2),Number(e.pct).toFixed(2),Number(e.earned).toFixed(2),(e.notes||'').replaceAll('"','""')].map(v=>`"${String(v)}"`).join(','))
+    data.map(e=>[e.id,e.date,e.created_at||'',e.updated_at||'',(e.patient_name||'').replaceAll('"','""'),
+      Number(e.gross).toFixed(2),Number(e.pct).toFixed(2),Number(e.earned).toFixed(2),(e.notes||'').replaceAll('"','""')]
+      .map(v=>`"${String(v)}"`).join(','))
   ).join('\n');
   const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}); const url=URL.createObjectURL(blob);
   const a=document.createElement('a'); a.href=url; a.download='ev-fizio.csv'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
@@ -478,10 +533,7 @@ async function showApp(scrollToAdd=false){
 }
 
 /*** Initial load ***/
-(async function init(){
-  // if session exists, show app
-  await showApp();
-})();
+(async function init(){ await showApp(); })();
 </script>
 </body>
 </html>
