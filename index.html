@@ -24,7 +24,7 @@
     margin:0;background:var(--bg);color:var(--text);
     font:17px/1.5 system-ui,-apple-system,Segoe UI,Inter,Roboto,Arial;
     -webkit-text-size-adjust:100%;
-    overflow-x:hidden;              /* 👈 prevent horizontal drag/bounce */
+    overflow-x:hidden;              /* prevent horizontal drag */
   }
 
   /* App column */
@@ -35,7 +35,7 @@
     padding-left:16px;
     padding-right:16px;
     padding-bottom:16px;
-    padding-top:calc(env(safe-area-inset-top, 0px) + 12px);   /* 👈 lower header under notch */
+    padding-top:calc(env(safe-area-inset-top, 0px) + 12px); /* lower header under notch */
     box-sizing:border-box;
   }
   @media (min-width:900px){
@@ -59,10 +59,18 @@
   @media(max-width:700px){.grid.cols-2{grid-template-columns:1fr}} /* stack on phones */
 
   label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
+
+  /* Base inputs */
   input[type="text"],input[type="number"],input[type="password"],input[type="date"]{
     width:100%;box-sizing:border-box;background:#fff;border:1px solid var(--border);
     border-radius:12px;padding:13px 14px;font-size:16px
   }
+
+  /* 🔧 Date input alignment fix (iOS & WebKit) */
+  input[type="date"]{ text-align:left }
+  input[type="date"]::-webkit-date-and-time-value{ text-align:left }
+  input[type="date"]::-webkit-datetime-edit{ text-align:left }
+  input[type="date"]::-webkit-datetime-edit-fields-wrapper{ text-align:left }
 
   .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
   .row>*{flex:1 1 auto}
@@ -100,14 +108,23 @@
 
   .empty{padding:18px;text-align:center;color:var(--muted)}
 
+  /* Modal/backdrop */
   .modal-backdrop{position:fixed;inset:0;background:rgba(15,18,22,.35);display:none;align-items:flex-end;justify-content:center}
-  .modal{width:100%;max-width:560px;background:#fff;border:1px solid var(--border);border-top-left-radius:16px;border-top-right-radius:16px;box-shadow:var(--shadow);padding:14px;transform:translateY(8px)}
+  .modal{
+    width:100%;max-width:560px;background:#fff;border:1px solid var(--border);
+    border-top-left-radius:16px;border-top-right-radius:16px;box-shadow:var(--shadow);
+    padding:14px;
+    margin-bottom:calc(env(safe-area-inset-bottom, 0px) + 18px);  /* 🔧 raised sheet */
+    padding-bottom:calc(env(safe-area-inset-bottom, 0px) + 14px); /* 🔧 extra room for buttons */
+    transform:translateY(0)
+  }
   .modal header{margin:0 0 10px 0}
   .modal .footer{display:flex;justify-content:flex-end;gap:8px;margin-top:10px}
 
   .hide{display:none}
   .right{margin-left:auto}
 </style>
+
 </head>
 <body>
 <div class="wrap">
