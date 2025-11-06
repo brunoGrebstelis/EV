@@ -6,7 +6,7 @@
       content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
 <title>EV Fizio</title>
 
-<!-- App Icons / PWA-ish feel -->
+<!-- Icons -->
 <link rel="icon" type="image/png" href="visockis.jpg">
 <link rel="apple-touch-icon" href="visockis.jpg">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -19,31 +19,35 @@
     --danger:#e5484d;--border:#e3e5e8;--shadow:0 1px 2px rgba(0,0,0,.04),0 8px 24px rgba(0,0,0,.06);--r:16px
   }
 
-  /* Phone-first “app” look */
   html,body{height:100%}
   body{
     margin:0;background:var(--bg);color:var(--text);
-    font:17px/1.5 system-ui,-apple-system,Segoe UI,Inter,Roboto,Arial; /* bigger base */
-    -webkit-text-size-adjust:100%; /* prevent auto-zooming on inputs iOS */
+    font:17px/1.5 system-ui,-apple-system,Segoe UI,Inter,Roboto,Arial;
+    -webkit-text-size-adjust:100%;
+    overflow-x:hidden;              /* 👈 prevent horizontal drag/bounce */
   }
 
-  /* Narrow, app-like column that fills the phone screen */
+  /* App column */
   .wrap{
     width:100%;
-    max-width:420px;                 /* feels like native app width */
+    max-width:420px;
     margin-inline:auto;
-    padding:16px;                    /* consistent padding on phones */
+    padding-left:16px;
+    padding-right:16px;
+    padding-bottom:16px;
+    padding-top:calc(env(safe-area-inset-top, 0px) + 12px);   /* 👈 lower header under notch */
+    box-sizing:border-box;
   }
-
-  /* On wider screens, breathe a bit more */
   @media (min-width:900px){
     body{font-size:16px}
-    .wrap{max-width:860px;padding:clamp(12px,2vw,20px)}
+    .wrap{max-width:860px;padding-left:20px;padding-right:20px}
   }
 
-  header{display:flex;align-items:center;gap:12px;margin:8px 0 16px}
-  .logo{width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,#10a37f,#72e7c7);
-        display:grid;place-items:center;color:#fff;font-weight:800;box-shadow:var(--shadow)}
+  header{display:flex;align-items:center;gap:12px;margin:8px 0 14px}
+  .logo{
+    width:40px;height:40px;border-radius:10px;overflow:hidden;box-shadow:var(--shadow);flex:0 0 40px
+  }
+  .logo img{width:100%;height:100%;object-fit:cover;display:block}
   h1{margin:0;font-size:22px}
   .sub{color:var(--muted);font-size:13px}
 
@@ -108,7 +112,8 @@
 <body>
 <div class="wrap">
   <header>
-    <div class="logo">EV</div>
+    <!-- swapped to visockis.jpeg at the same size as the old “EV” badge -->
+    <div class="logo"><img src="visockis.jpeg" alt="EV Fizio logo"></div>
     <div>
       <h1>EV Fizio</h1>
       <div class="sub"></div>
@@ -262,7 +267,6 @@ async function signup(){
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ toast('Invalid email','warn'); return; }
   if(pass.length<6){ toast('Password too short','warn'); return; }
 
-  // No manual insert into profiles; trigger will create it.
   const { data, error } = await supabaseClient.auth.signUp({
     email,
     password: pass,
