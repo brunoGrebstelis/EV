@@ -64,16 +64,42 @@
   input[type="text"],
   input[type="number"],
   input[type="password"],
-  input[type="date"] {
-    width: 100%;
-    box-sizing: border-box;
-    background: #fff;
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 13px 16px;        /* 👈 more balanced padding */
-    font-size: 16px;
-    -webkit-padding-end: 16px; /* 👈 iOS fix for date input right side */
+  input[type="date"]{
+    width:100%;
+    max-width:100%;
+    box-sizing:border-box;
+    background:#fff;
+    border:1px solid var(--border);
+    border-radius:12px;
+    font-size:16px;
+
+    /* same padding both sides for all inputs */
+    padding:13px 16px;
+
+    /* quell iOS/WebKit quirks + satisfy linter */
+    -webkit-appearance:none;
+    appearance:none;
   }
+
+  /* iOS date input: keep text left and enforce right-side space */
+  input[type="date"]{
+    text-align:left;
+    padding-right:16px !important;        /* force equal right space */
+    -webkit-padding-end:16px !important;   /* iOS specific */
+  }
+  input[type="date"]::-webkit-date-and-time-value{ text-align:left }
+  input[type="date"]::-webkit-datetime-edit{ text-align:left }
+  input[type="date"]::-webkit-datetime-edit-fields-wrapper{ text-align:left }
+
+  /* keep the calendar icon but don't add extra spacing */
+  input[type="date"]::-webkit-calendar-picker-indicator{
+    margin:0;
+    padding:0 2px 0 0;
+  }
+
+  .grid > * { min-width:0; }
+  
+
 
   /* 🔧 Date input alignment fix (iOS & WebKit) */
   input[type="date"]{ text-align:left }
